@@ -1,0 +1,151 @@
+1. SELECT order_id, CAST(SUM(quantity * unit_price - (quantity * unit_price * discount)) AS decimal(10,2)) AS subtotal
+FROM order_details
+GROUP BY order_id
+ORDER BY order_id;
+
+
+2.SELECT O.shipped_date, O.order_id, CAST(SUM(D.quantity * D.unit_price - (D.quantity * D.unit_price * D.discount)) AS decimal(10,2)) AS subtotal, extract(year FROM O.shipped_date) as year
+FROM order_details D
+INNER JOIN orders O on D.order_id = O.order_id
+WHERE O.shipped_date >= '1996-12-24' and O.shipped_date <= '1997-09-30'
+GROUP BY O.order_id
+ORDER BY O.shipped_date
+
+3. Select product_id, product_name, supplier_id, category_id, quantity_per_unit, unit_price from products order by product_name
+
+4. Select product_id, product_name from products order by product_name
+
+5. Select d.order_id, p.product_name, d.unit_price, d.quantity, d.discount,
+	cast(sum((d.quantity * d.unit_price) - ( d.quantity * d.unit_price * discount)) 
+		 as decimal(10,2)) as ExtendedPrice
+From order_details d
+Inner Join products p on d.product_id = p.product_id
+Group By d.order_id, p.product_name, d.unit_price, d.quantity, d.discount
+Order by d.order_id
+
+6. select c.category_id, c.category_name, p.product_name, cast(sum((d.quantity * d.unit_price) - ( d.quantity * d.unit_price * discount)) 
+as decimal(10,2)) as ProductSales
+From categories c
+INNER JOIN products p on c.category_id = p.category_id
+INNER JOIN order_details d on p.product_id = d.product_id
+INNER JOIN orders o on o.order_id = d.order_id
+WHERE extract(year From o.order_date) = '1997'
+Group by c.category_id, c.category_name, p.product_name
+Order By c.category_name, p.product_name
+
+7.Select product_name AS "Top Ten Most Expensive Product", unit_price 
+From products 
+ORDER BY unit_price DESC 
+LIMIT 10;
+
+8. Select c.category_name, p.product_name, p.quantity_per_unit, p.units_in_stock,
+	case 
+		when p.discontinued = 1 then 'y'
+		when p.discontinued = 0 then 'n'
+	end as discontinued
+from products p
+inner join categories c on p.category_id = c.category_id
+order by c.category_name, p.product_name
+
+9. Select city, company_name, contact_name,
+	case
+		when customer_id is null then 'Suppliers'
+		when customer_id is not null then 'Customers'
+	end as "Relationship"
+From customers
+UNION ALL
+Select city, company_name, contact_name,
+	case
+		when supplier_id is null then 'Customers'
+		when supplier_id is not null then 'Suppliers'
+	end as "Relationship"
+From suppliers
+Order by city
+
+10. Select e.country, e.last_name, e.first_name, o.shipped_date, o.order_id, 
+	cast(sum((d.quantity * d.unit_price) - ( d.quantity * d.unit_price * discount)) 
+	as decimal(12,2)) as "Sale_Amount"
+From employees	e
+INNER JOIN orders o ON e.employee_id = o.employee_id
+INNER JOIN order_details d on o.order_id = d.order_id
+WHERE EXTRACT(year From o.shipped_date) = '1997'
+Group by e.country, e.last_name, e.first_name, o.shipped_date, o.order_id
+Order by e.country, e.last_name, e.first_name, o.shipped_date
+
+11. Select product_name, unit_price
+From products
+WHERE unit_price >(select avg(total)
+		From (select sum(unit_price) as total
+			  From products
+			  Group by product_name) as average)
+Order by unit_price
+
+12. Select c.category_name, p.product_name,
+	cast(sum((d.quantity * d.unit_price) - ( d.quantity * d.unit_price * discount)) 
+	as decimal(12,2)) as ProductSales,
+	concat('QTR', ' ', extract(quarter From o.shipped_date)) as ShippedQuarter
+From products p
+join join categories c on p.category_id = c.category_id
+join order_details d on p.product_id = d.product_id
+join orders o on d.order_id = o.order_id
+where extract(year From o.shipped_date) = '1997'
+Group by ShippedQuarter, c.category_name, p.product_name
+Order by c.category_name, p.product_name
+
+13. Select c.category_name,
+	cast(sum((d.quantity * d.unit_price) - ( d.quantity * d.unit_price * discount)) 
+	as decimal(12,2)) as CategorySales
+from categories c
+Inner join products p on p.category_id = c.category_id
+Inner join order_details d on p.product_id = d.product_id
+inner join orders o on d.order_id = o.order_id
+where extract(year From o.shipped_date) = '1997'
+Group by c.category_name
+Order by c.category_name
+
+14.SELECT
+    p.product_name,
+    c.company_name,
+    EXTRACT(year FROM o.order_date) AS OrderYear,
+    CASE
+        WHEN EXTRACT(quarter FROM o.order_date) = '1' THEN CAST(SUM((d.quantity * d.unit_price) - (d.quantity * d.unit_price * discount)) AS decimal(10,0))
+        ELSE '0'
+    END AS "Qtr 1",
+    CASE
+        WHEN EXTRACT(quarter FROM o.order_date) = '2' THEN CAST(SUM((d.quantity * d.unit_price) - (d.quantity * d.unit_price * discount)) AS decimal(10,0))
+        ELSE '0'
+    END AS "Qtr 2",
+    CASE
+        WHEN EXTRACT(quarter FROM o.order_date) = '3' THEN CAST(SUM((d.quantity * d.unit_price) - (d.quantity * d.unit_price * discount)) AS decimal(10,0))
+        ELSE '0'
+    END AS "Qtr 3",
+    CASE
+        WHEN EXTRACT(quarter FROM o.order_date) = '4' THEN CAST(SUM((d.quantity * d.unit_price) - (d.quantity * d.unit_price * discount)) AS decimal(10,0))
+        ELSE '0'
+    END AS "Qtr 4"
+FROM
+    customers c
+    INNER JOIN orders o ON o.customer_id = c.customer_id
+    INNER JOIN order_details d ON d.order_id = o.order_id
+    INNER JOIN products p ON p.product_id = d.product_id
+WHERE
+    EXTRACT(year FROM o.shipped_date) = '1997'
+GROUP BY
+    p.product_name,
+    c.company_name,
+    o.order_date;
+
+15. SELECT c.category_name as product_category, 
+	case
+		when s.country in ('USA', 'Brazil', 'Canada') then 'America'
+		when s.country in ('Australia', 'Japan', 'Singapore') then 'Asia Pacific'
+		else 'Europe'
+	end as supplier_continent, 
+	sum(p.units_in_stock) as unit_in_stock
+From categories c
+Inner join products p on p.category_id = c.category_id
+Inner join suppliers s on p.supplier_id = s.supplier_id
+Group by category_name, supplier_continent
+Order by category_name
+
+

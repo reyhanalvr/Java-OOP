@@ -1,0 +1,28 @@
+1. SELECT CustomerID, CustomerName, ContactName, City, Country 
+FROM [Customers] 
+WHERE Country = 'Germany'
+
+2. SELECT ProductName, MAX(Price) as Price
+FROM [Products]
+
+3.SELECT * 
+FROM Products 
+WHERE Price = (SELECT Min(Price) FROM Products WHERE CategoryID = (SELECT CategoryID FROM Categories WHERE CategoryName = 'Beverages'))
+
+4. SELECT COUNT(Orders.OrderId)
+FROM Orders,OrderDetails,Products
+WHERE Orders.OrderId = OrderDetails.OrderID
+AND OrderDetails.ProductID = Products.ProductID
+AND Products.ProductName = 'Konbu'
+
+5. SELECT AVG(price) as 'Average Price' FROM [Products]
+
+6. SELECT * FROM Customers WHERE Country NOT IN ('Brazil', 'Mexico', 'Venezuela')
+
+7. SELECT * FROM Products WHERE Price<100
+
+8. SELECT * FROM Customers Where Country IN ('Germany', 'France')
+
+9. SELECT COUNT(CustomerId) From Customers Where Country='USA'
+
+10. SELECT * FROM Customers Where Country Like '%a'

@@ -1,0 +1,51 @@
+1. SELECT O.OrderID, C.CustomerName, SUM(D.Quantity*P.Price) As 'Total Price'
+FROM Orders O
+INNER JOIN OrderDetails D on D.OrderID = O.OrderID
+INNER JOIN Customers C on O.CustomerID = C.CustomerID
+INNER JOIN Products P on D.ProductID = P.ProductID
+GROUP BY O.OrderID
+
+2. SELECT C.CustomerName, COUNT(D.ProductID) AS TotalProduct
+FROM Customers C 
+LEFT JOIN Orders O ON C.CustomerID = O.CustomerID
+LEFT JOIN OrderDetails D on D.OrderID = O.OrderID
+GROUP BY C.CustomerName
+ORDER BY C.CustomerName
+
+3. SELECT C.CustomerName, P.ProductName, SUM(D.Quantity) As TotalQuantityOrder
+FROM Customers C
+LEFT JOIN Orders O ON C.CustomerID = O.CustomerID
+LEFT JOIN OrderDetails D ON O.OrderID = D.OrderID
+LEFT JOIN Products P on P.ProductID = D.ProductID
+GROUP BY C.CustomerName, P.ProductName
+ORDER BY C.CustomerName
+
+4. SELECT C.Country, P.ProductName, SUM(D.Quantity) As TotalQuantityOrder
+From Customers C
+INNER JOIN Orders O ON C.CustomersID = O.CustomerID
+INNER JOIN OrderDetails D ON O.OrderID = D.OrderID
+INNER JOIN Products P on P.ProductID = D.ProductID
+GROUP BY C.Country, P.ProductName
+
+5. SELECT O.OrderID, C.CustomerName, SUM(D.Quantity*P.Price) As TotalPrice,
+CASE 
+	WHEN SUM(D.Quantity*P.Price) >= 0 AND SUM(D.Quantity*P.Price) <=500 THEN 'Hat'
+	WHEN SUM(D.Quantity*P.Price) > 500 AND SUM(D.Quantity*P.Price) <=1000 THEN 'Clothes'
+	WHEN SUM(D.Quantity*P.Price) > 1000 THEN 'TV'
+END AS Bonus
+FROM Orders O
+INNER JOIN OrderDetails D ON O.OrderID = D.OrderID
+INNER JOIN Customers C ON O.CustomerID = C.CustomerID
+INNER JOIN Products P on P.ProductID = D.ProductID
+GROUP BY O.OrderID
+
+6. SELECT P.ProductName, SUM(D.QUANTITY) As TotalQuantity,
+CASE
+	WHEN SUM(D.Quantity) >= 0 AND SUM(D.Quantity) <30 THEN 'NOT Recommended Product'
+	WHEN SUM(D.Quantity) >= 30 AND SUM(D.Quantity) < (SELECT AVG(Total) FROM (SELECT SUM(Quantity) AS Total 
+FROM OrderDetails GROUP BY ProductID)) THEN 'Recommended Product'
+	ELSE 'Best Sellect Product'
+END AS 'Details'
+FROM Products P
+INNER JOIN OrderDetails D ON P.ProductID = D.ProductID
+GROUP BY D.ProductID
